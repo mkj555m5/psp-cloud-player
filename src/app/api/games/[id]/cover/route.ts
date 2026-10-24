@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import fsp from "fs/promises";
 import { Readable } from "stream";
-import { db } from "@/lib/db";
+import { db, withSchema } from "@/lib/db";
 import { getCoverPath, contentTypeFromExt } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function GET(
   const { id } = await params;
 
   try {
-    const game = await db.game.findUnique({ where: { id } });
+    const game = await withSchema(() => db.game.findUnique({ where: { id } }));
     if (!game) return new NextResponse("Not found", { status: 404 });
 
     if (game.coverPath) {

@@ -3,25 +3,28 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { db } from "@/lib/db";
+import { db, withSchema } from "@/lib/db";
 import { checkAdmin } from "@/lib/admin";
 import { startGameDownload } from "@/lib/downloader";
 import { getProgress } from "@/lib/downloads";
 
 export async function GET() {
   try {
-    const games = await db.game.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        ext: true,
-        size: true,
-        createdAt: true,
-      },
-    });
+    const games = await withSchema(() =>
+      db.game.findMany({
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          ext: true,
+          size: true,
+          createdAt: true,
+        },
+      })
+    );
     return NextResponse.json({ games });
-  } catch {
+  } catch (err) {
+    console.error("[api/games] GET error:", err);
     return NextResponse.json(
       { error: "فشل جلب قائمة الألعاب" },
       { status: 500 }

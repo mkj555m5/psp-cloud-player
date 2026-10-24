@@ -4,7 +4,7 @@ import path from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import extract from "extract-zip";
-import { db } from "@/lib/db";
+import { db, withSchema } from "@/lib/db";
 import {
   GAMES_DIR,
   COVERS_DIR,
@@ -158,16 +158,18 @@ async function processDownload(opts: StartOptions) {
         .trim() ||
       "لعبة PSP";
 
-    await db.game.create({
-      data: {
-        id: gameId,
-        name: displayName,
-        fileName,
-        ext: finalExt,
-        size: stat.size,
-        coverPath,
-      },
-    });
+    await withSchema(() =>
+      db.game.create({
+        data: {
+          id: gameId,
+          name: displayName,
+          fileName,
+          ext: finalExt,
+          size: stat.size,
+          coverPath,
+        },
+      })
+    );
 
     // تنظيف الملفات المؤقتة
     await fsp.rm(tmpFile, { force: true });
